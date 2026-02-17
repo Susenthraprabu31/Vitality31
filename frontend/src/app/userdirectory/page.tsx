@@ -81,9 +81,9 @@ export default function Userdirectory() {
             // ✅ SOLUTION 5: Intercept router.push to automatically set redirect flag
             if (typeof window !== 'undefined' && typeof router !== 'undefined') {
               const originalPush = router.push;
-              router.push = function (...args: any[]) {
+              router.push = function (href: string, options?: any) {
                 (window as any).__isRedirecting = true;
-                return (originalPush as any).apply(router, args);
+                return (originalPush as any)(href, options);
               };
             }
 
