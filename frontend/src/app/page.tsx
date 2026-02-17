@@ -16,7 +16,7 @@ declare global {
 
 // Flow Integration System Variables
 let executeAllFlows: any = null;
-let executeSpecificFlow: any = null; 
+let executeSpecificFlow: any = null;
 let getFlowChainInfo: any = null;
 
 // Template Engine Import for Flow Integration
@@ -44,15 +44,16 @@ export default function SignUp() {
   // Form state management
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const loginCredentialsRef = useRef<any>(null);
+
   // Input references
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   // Form submission handler
   const handleid17710721194725045Submit = async (e: FormEvent, formId: string) => {
     e.preventDefault();
-    
+
     if (isSubmitting) return;
-    
+
     setIsSubmitting(true);
 
     try {
@@ -155,17 +156,17 @@ export default function SignUp() {
         // Helper function to safely extract and convert value to primitive
         const safeGetValue = (element: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement): string | boolean | number | undefined => {
           if (!element) return undefined;
-          
+
           // Handle checkbox
           if (element instanceof HTMLInputElement && element.type === 'checkbox') {
             return element.checked || false;
           }
-          
+
           // Handle radio buttons
           if (element instanceof HTMLInputElement && element.type === 'radio') {
             return element.checked ? element.value : undefined;
           }
-          
+
           // Handle select (single or multiple)
           if (element instanceof HTMLSelectElement) {
             if (element.multiple) {
@@ -174,13 +175,13 @@ export default function SignUp() {
             }
             return element.value || '';
           }
-          
+
           // Handle number inputs
           if (element instanceof HTMLInputElement && element.type === 'number') {
             const numValue = parseFloat(element.value);
             return isNaN(numValue) ? '' : numValue;
           }
-          
+
           // Handle all other inputs and textareas - ensure string conversion
           const rawValue = element.value || '';
           if (typeof rawValue === 'string') {
@@ -221,7 +222,7 @@ export default function SignUp() {
             console.error(`Error querying DOM for input ${inputId}:`, error);
           }
         }
-        
+
         // Skip undefined values (don't store them)
         if (fieldValue === undefined) {
           return;
@@ -232,11 +233,11 @@ export default function SignUp() {
 
         // Handle special checkbox fields - convert long checkbox text to 'checkbox'
         if (fieldName.toLowerCase().includes('agree') ||
-            fieldName.toLowerCase().includes('contact') ||
-            fieldName.toLowerCase().includes('consent') ||
-            fieldName.toLowerCase().includes('terms') ||
-            fieldName.toLowerCase().includes('privacy') ||
-            (typeof fieldValue === 'boolean' && fieldName.length > 10)) {
+          fieldName.toLowerCase().includes('contact') ||
+          fieldName.toLowerCase().includes('consent') ||
+          fieldName.toLowerCase().includes('terms') ||
+          fieldName.toLowerCase().includes('privacy') ||
+          (typeof fieldValue === 'boolean' && fieldName.length > 10)) {
           normalizedFieldName = 'checkbox';
         }
 
@@ -248,19 +249,19 @@ export default function SignUp() {
 
       // ✅ CRITICAL FIX: Validate signup form passwords BEFORE executing workflows
       // Check if this is a signup form (has confirm_password field)
-      const isSignupForm = newFormData.hasOwnProperty('confirm_password') || 
-                           newFormData.hasOwnProperty('confirmPassword') ||
-                           newFormData.hasOwnProperty('Confirm Password') ||
-                           newFormData.hasOwnProperty('confirm_password');
-      
+      const isSignupForm = newFormData.hasOwnProperty('confirm_password') ||
+        newFormData.hasOwnProperty('confirmPassword') ||
+        newFormData.hasOwnProperty('Confirm Password') ||
+        newFormData.hasOwnProperty('confirm_password');
+
       if (isSignupForm) {
         // Extract password and confirm password values (check multiple field name variations)
         const password = newFormData.password || newFormData.Password || newFormData['Password'] || '';
-        const confirmPassword = newFormData.confirm_password || 
-                                newFormData.confirmPassword || 
-                                newFormData['Confirm Password'] || 
-                                newFormData['confirm_password'] || '';
-        
+        const confirmPassword = newFormData.confirm_password ||
+          newFormData.confirmPassword ||
+          newFormData['Confirm Password'] ||
+          newFormData['confirm_password'] || '';
+
         // Validate passwords match
         if (password && confirmPassword && password !== confirmPassword) {
           console.error('❌ Password validation failed: Passwords do not match');
@@ -268,7 +269,7 @@ export default function SignUp() {
           setIsSubmitting(false);
           return; // Exit early - do NOT execute workflows
         }
-        
+
         // Validate password is not empty
         if (!password || password.trim() === '') {
           console.error('❌ Password validation failed: Password is required');
@@ -290,7 +291,7 @@ export default function SignUp() {
           // ✅ SOLUTION 1: For login forms, call only the login workflow instead of all workflows
           // Check if this is a login form by checking if loginCredentialsRef is set
           const isLoginForm = typeof loginCredentialsRef !== 'undefined' && loginCredentialsRef?.current;
-          
+
           if (isLoginForm && typeof (window as any).executeSpecificFlow === 'function' && typeof (window as any).getFlowChainInfo === 'function') {
             // Find the login workflow chain ID
             const flowChains = (window as any).getFlowChainInfo();
@@ -298,10 +299,10 @@ export default function SignUp() {
               // Check if this is a login workflow by examining the start node
               const startNode = chain.startNode;
               const authCategory = startNode?.config?._auth_metadata?.auth_block_category;
-              return startNode?.nodeType === 'form' && 
-                     (authCategory?.toLowerCase().includes('login') || authCategory?.toLowerCase().includes('signin'));
+              return startNode?.nodeType === 'form' &&
+                (authCategory?.toLowerCase().includes('login') || authCategory?.toLowerCase().includes('signin'));
             });
-            
+
             if (loginWorkflow) {
               // If we have stored login credentials (Scenario 2), use them for workflow
               if (loginCredentialsRef?.current) {
@@ -312,7 +313,7 @@ export default function SignUp() {
                 // Clear the ref after using it
                 loginCredentialsRef.current = null;
               }
-              
+
               // Pass form data both at top level and nested for maximum compatibility
               const flowData = {
                 ...newFormData,  // Form fields at top level for easy access
@@ -328,7 +329,7 @@ export default function SignUp() {
               return; // Exit early after login workflow
             }
           }
-          
+
           // ✅ SOLUTION 3: For signup forms, call only the signup workflow instead of all workflows
           if (isSignupForm && typeof (window as any).executeSpecificFlow === 'function' && typeof (window as any).getFlowChainInfo === 'function') {
             // Find the signup workflow chain ID
@@ -337,12 +338,12 @@ export default function SignUp() {
               // Check if this is a signup workflow by examining the start node
               const startNode = chain.startNode;
               const authCategory = startNode?.config?._auth_metadata?.auth_block_category;
-              return startNode?.nodeType === 'form' && 
-                     (authCategory?.toLowerCase().includes('signup') || 
-                      authCategory?.toLowerCase().includes('register') ||
-                      authCategory?.toLowerCase().includes('sign-up'));
+              return startNode?.nodeType === 'form' &&
+                (authCategory?.toLowerCase().includes('signup') ||
+                  authCategory?.toLowerCase().includes('register') ||
+                  authCategory?.toLowerCase().includes('sign-up'));
             });
-            
+
             if (signupWorkflow) {
               // Pass form data both at top level and nested for maximum compatibility
               const flowData = {
@@ -359,7 +360,7 @@ export default function SignUp() {
               return; // Exit early after signup workflow
             }
           }
-          
+
           // If we have stored login credentials (Scenario 2), use them for workflow
           if (typeof loginCredentialsRef !== 'undefined' && loginCredentialsRef?.current) {
             newFormData.email = loginCredentialsRef.current.email;
@@ -369,7 +370,7 @@ export default function SignUp() {
             // Clear the ref after using it
             loginCredentialsRef.current = null;
           }
-          
+
           // Pass form data both at top level and nested for maximum compatibility
           const flowData = {
             ...newFormData,  // Form fields at top level for easy access
@@ -419,7 +420,8 @@ export default function SignUp() {
         }
       });
 
-      setFormData({});    } catch (error) {
+      setFormData({});
+    } catch (error) {
       console.error('Form submission error:', error);
 
       // Show error notification
@@ -445,9 +447,9 @@ export default function SignUp() {
   React.useEffect(() => {
     // Flow Integration System Variables
     let executeAllFlows: any = null;
-    let executeSpecificFlow: any = null; 
+    let executeSpecificFlow: any = null;
     let getFlowChainInfo: any = null;
-    
+
     // Async function to load flow integration
     const loadFlowIntegration = async () => {
       try {
@@ -456,7 +458,7 @@ export default function SignUp() {
           executeAllFlows = flowIntegration.executeAllFlows;
           executeSpecificFlow = flowIntegration.executeSpecificFlow;
           getFlowChainInfo = flowIntegration.getFlowChainInfo;
-          
+
           // Attach flow functions to window for global access
           if (typeof window !== 'undefined') {
             (window as any).executeAllFlows = executeAllFlows;
@@ -470,20 +472,20 @@ export default function SignUp() {
               });
               return chains;
             };
-            
+
             // ✅ SOLUTION 5: Intercept router.push to automatically set redirect flag
             if (typeof window !== 'undefined' && typeof router !== 'undefined') {
               const originalPush = router.push;
-              router.push = function(...args: any[]) {
+              router.push = function (...args: any[]) {
                 (window as any).__isRedirecting = true;
-                return originalPush.apply(router, args);
+                return (originalPush as any).apply(router, args);
               };
             }
-            
+
             console.log('🚀 Flow Integration System initialized with', getFlowChainInfo()?.length || 0, 'chains');
-            
+
             // Auto-execute page load workflows if any exist
-            
+
             // ✅ IMPROVED: Execute page load workflows with proper trigger data
             // The master executor will automatically filter by page URL and skip webhook workflows
             const pageLoadKey = 'page-load:' + window.location.pathname;
@@ -512,7 +514,7 @@ export default function SignUp() {
         executeAllFlows = async () => ({ success: false, message: 'Flow integration not available' });
         executeSpecificFlow = async () => ({ success: false, message: 'Flow integration not available' });
         getFlowChainInfo = () => [];
-        
+
         // Set fallback functions on window
         if (typeof window !== 'undefined') {
           (window as any).executeAllFlows = executeAllFlows;
@@ -525,7 +527,7 @@ export default function SignUp() {
         }
       }
     };
-    
+
     // Load flow integration
     loadFlowIntegration();
   }, []);
@@ -537,7 +539,7 @@ export default function SignUp() {
       if (!(window as any).__scriptContext) {
         (window as any).__scriptContext = {
           data: {},
-          setData: function(key: string, value: any) {
+          setData: function (key: string, value: any) {
             this.data[key] = value;
             // Dispatch custom event for data changes
             if (typeof window !== 'undefined') {
@@ -546,10 +548,10 @@ export default function SignUp() {
               }));
             }
           },
-          getData: function(key: string) {
+          getData: function (key: string) {
             return this.data[key];
           },
-          clearData: function(key?: string) {
+          clearData: function (key?: string) {
             if (key) {
               delete this.data[key];
             } else {
@@ -637,7 +639,7 @@ export default function SignUp() {
         console.log('🛑 Skipping script event processing - redirect in progress');
         return false;
       }
-      
+
       const executeSpecificFlow = (window as any).executeSpecificFlow;
       const getFlowChainInfo = (window as any).getFlowChainInfo;
       if (typeof executeSpecificFlow !== 'function' || typeof getFlowChainInfo !== 'function') {
@@ -652,7 +654,7 @@ export default function SignUp() {
         if (typeof window !== 'undefined' && (window as any).__isRedirecting) {
           return;
         }
-        
+
         const scriptId = payload?.scriptId || payload?.script_id;
         const scriptName = payload?.scriptName || payload?.script_name;
         if (!scriptId && !scriptName) return;
@@ -672,7 +674,7 @@ export default function SignUp() {
         console.log('🛑 Skipping script event handler - redirect in progress');
         return;
       }
-      
+
       const detail = (event as CustomEvent).detail as { key?: string; value?: any } | undefined;
       if (!detail || detail.key !== 'script_done') return;
       const payload = detail.value as any;
@@ -721,28 +723,28 @@ export default function SignUp() {
     return () => window.removeEventListener('__scriptContextChange', handler as EventListener);
   }, []);
   return (
-<> 
-<div style={{ width: "100%", display: "grid", position: "relative", minHeight: "100vh", gridTemplateRows: "repeat(auto-fill, minmax(30px, auto))", gridTemplateColumns: "repeat(12, 1fr)" }} id="page-container-undefined">
-      <div style={{ width: "100%", display: "flex", padding: "20px", gridArea: "1 / 1 / 26 / 13", overflow: "hidden", position: "relative", minHeight: "750px", gridRowEnd: 26, gridRowStart: 1, gridColumnEnd: 13, flexDirection: "row", backgroundColor: "black", gridColumnStart: 1, justifyContent: "space-between" }} id="component-1770707142250-911">
-        <div style={{ width: "1070.0000610351562px", border: "none", height: "814.0000610351562px", display: "flex", padding: "0.5rem", overflow: "visible", minHeight: "3.125rem", alignItems: "center", flexDirection: "row", backgroundColor: "", justifyContent: "center" }} id="nested-1771072055001-1420">
-          <div style={{ width: "600px", height: "600px", display: "flex", padding: "20px", minHeight: "100vh", alignItems: "center", flexDirection: "column", justifyContent: "center", backgroundColor: "#f5f5f5" }} id="nested-1771072119472-8257">
-            <div style={{ width: "100%", padding: "40px", maxWidth: "400px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)", borderRadius: "8px", backgroundColor: "#ffffff" }} id="id-177107211947218">
-              <h1 style={{ color: "#333", fontSize: "28px", textAlign: "center", fontWeight: "bold", marginBottom: "30px" }} id="id-17710721194723648">Sign Up</h1>
-              <form style={{ method: "POST", formAction: "/api/auth/signup" }} data-component-id="id-17710721194725045" onSubmit={(e) => handleid17710721194725045Submit(e, 'id-17710721194725045')}>
-                <input style={{ width: "100%", border: "1px solid #ddd", padding: "12px", fontSize: "16px", borderRadius: "4px", marginBottom: "20px" }} data-component-id="id-17710721194723355" ref={(el) => { if(el) inputRefs.current['id-17710721194723355'] = el; }} name="email" type="email" placeholder="Email" required={true} />
-                <input style={{ width: "100%", border: "1px solid #ddd", padding: "12px", fontSize: "16px", borderRadius: "4px", marginBottom: "20px" }} data-component-id="id-17710721194728817" ref={(el) => { if(el) inputRefs.current['id-17710721194728817'] = el; }} name="password" type="password" placeholder="Password" required={true} />
-                <input style={{ width: "100%", border: "1px solid #ddd", padding: "12px", fontSize: "16px", borderRadius: "4px", marginBottom: "20px" }} data-component-id="id-17710721194729380" ref={(el) => { if(el) inputRefs.current['id-17710721194729380'] = el; }} name="confirm_password" type="password" placeholder="Confirm Password" required={true} />
-                <button style={{ color: "#ffffff", width: "100%", border: "none", cursor: "pointer", padding: "12px", fontSize: "16px", fontWeight: "bold", borderRadius: "4px", backgroundColor: "#28a745" }} data-component-id="id-17710721194725976" type="submit" onClick={() => {
-          console.log('🔘 Normal button clicked: id-17710721194725976');
-          // This button does not have any workflow attached
-        }}>Sign Up</button>
-              </form>
+    <>
+      <div style={{ width: "100%", display: "grid", position: "relative", minHeight: "100vh", gridTemplateRows: "repeat(auto-fill, minmax(30px, auto))", gridTemplateColumns: "repeat(12, 1fr)" }} id="page-container-undefined">
+        <div style={{ width: "100%", display: "flex", padding: "20px", gridArea: "1 / 1 / 26 / 13", overflow: "hidden", position: "relative", minHeight: "750px", gridRowEnd: 26, gridRowStart: 1, gridColumnEnd: 13, flexDirection: "row", backgroundColor: "black", gridColumnStart: 1, justifyContent: "space-between" }} id="component-1770707142250-911">
+          <div style={{ width: "1070.0000610351562px", border: "none", height: "814.0000610351562px", display: "flex", padding: "0.5rem", overflow: "visible", minHeight: "3.125rem", alignItems: "center", flexDirection: "row", backgroundColor: "", justifyContent: "center" }} id="nested-1771072055001-1420">
+            <div style={{ width: "600px", height: "600px", display: "flex", padding: "20px", minHeight: "100vh", alignItems: "center", flexDirection: "column", justifyContent: "center", backgroundColor: "#f5f5f5" }} id="nested-1771072119472-8257">
+              <div style={{ width: "100%", padding: "40px", maxWidth: "400px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)", borderRadius: "8px", backgroundColor: "#ffffff" }} id="id-177107211947218">
+                <h1 style={{ color: "#333", fontSize: "28px", textAlign: "center", fontWeight: "bold", marginBottom: "30px" }} id="id-17710721194723648">Sign Up</h1>
+                <form data-component-id="id-17710721194725045" onSubmit={(e) => handleid17710721194725045Submit(e, 'id-17710721194725045')}>
+                  <input style={{ width: "100%", border: "1px solid #ddd", padding: "12px", fontSize: "16px", borderRadius: "4px", marginBottom: "20px" }} data-component-id="id-17710721194723355" ref={(el) => { if (el) inputRefs.current['id-17710721194723355'] = el; }} name="email" type="email" placeholder="Email" required={true} />
+                  <input style={{ width: "100%", border: "1px solid #ddd", padding: "12px", fontSize: "16px", borderRadius: "4px", marginBottom: "20px" }} data-component-id="id-17710721194728817" ref={(el) => { if (el) inputRefs.current['id-17710721194728817'] = el; }} name="password" type="password" placeholder="Password" required={true} />
+                  <input style={{ width: "100%", border: "1px solid #ddd", padding: "12px", fontSize: "16px", borderRadius: "4px", marginBottom: "20px" }} data-component-id="id-17710721194729380" ref={(el) => { if (el) inputRefs.current['id-17710721194729380'] = el; }} name="confirm_password" type="password" placeholder="Confirm Password" required={true} />
+                  <button style={{ color: "#ffffff", width: "100%", border: "none", cursor: "pointer", padding: "12px", fontSize: "16px", fontWeight: "bold", borderRadius: "4px", backgroundColor: "#28a745" }} data-component-id="id-17710721194725976" type="submit" onClick={() => {
+                    console.log('🔘 Normal button clicked: id-17710721194725976');
+                    // This button does not have any workflow attached
+                  }}>Sign Up</button>
+                </form>
+              </div>
             </div>
           </div>
+          <Image src="/uploads/Frame_2147223712.png" alt="Frame 2147223712.png" width={500} height={300} style={{ width: "724.5833740234375px", height: "814.0000610351562px" }} id="nested-1771072142675-9506" />
         </div>
-        <Image src="/uploads/Frame_2147223712.png" alt="Frame 2147223712.png" width={500} height={300} style={{width: "724.5833740234375px", height: "814.0000610351562px"}} id="nested-1771072142675-9506" />
       </div>
-    </div>
 
     </>
   );

@@ -17,7 +17,7 @@ declare global {
 
 // Flow Integration System Variables
 let executeAllFlows: any = null;
-let executeSpecificFlow: any = null; 
+let executeSpecificFlow: any = null;
 let getFlowChainInfo: any = null;
 
 // Template Engine Import for Flow Integration
@@ -45,7 +45,7 @@ export default function Login() {
   // Form state management
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Input references
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -54,9 +54,9 @@ export default function Login() {
   // Form submission handler
   const handleid17710724062232715Submit = async (e: FormEvent, formId: string) => {
     e.preventDefault();
-    
+
     if (isSubmitting) return;
-    
+
     setIsSubmitting(true);
     setLoginError(null);
 
@@ -68,7 +68,7 @@ export default function Login() {
       // LOGIN FORM: Get email and password and call login API
       emailInput = inputRefs.current["id-17710724062237485"];
       passwordInput = inputRefs.current["id-17710724062239844"];
-      
+
       if (emailInput && passwordInput) {
         const email = emailInput.value.trim();
         const password = passwordInput.value;
@@ -88,7 +88,7 @@ export default function Login() {
 
           // Handle both response formats: { success: true } or { access_token: ... }
           const isSuccess = loginResponse.ok && (loginData.success === true || loginData.access_token || loginData.token);
-          
+
           if (!isSuccess) {
             setLoginError(loginData.detail || loginData.message || loginData.error || 'Login failed');
             setIsSubmitting(false);
@@ -101,22 +101,22 @@ export default function Login() {
             try {
               const isSecure = window.location.protocol === 'https:';
               const maxAge = 86400; // 24 hours
-              
+
               // Extract user_id from response (support multiple formats)
               const userId = loginData.user_id || loginData.userId || loginData.user?.id;
               // Extract auth_token from response (support multiple formats)
               const authToken = loginData.token || loginData.access_token || loginData.authToken;
-              
+
               // Set auth_token cookie as fallback (backend sets HttpOnly, but client-side ensures it's available)
               if (authToken) {
                 document.cookie = `auth_token=${authToken}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
               }
-              
+
               // Set user_id cookie as fallback
               if (userId) {
                 document.cookie = `user_id=${userId}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
               }
-              
+
               console.log('✅ Authentication cookies set:', { userId, hasToken: !!authToken });
             } catch (cookieError) {
               console.error('❌ Failed to set authentication cookies:', cookieError);
@@ -126,26 +126,26 @@ export default function Login() {
           // Secure validation function for redirect URLs
           const isValidRedirectPath = (path: string): boolean => {
             if (!path || typeof path !== 'string') return false;
-            
+
             // Decode URL encoding
             const decoded = decodeURIComponent(path);
-            
+
             // Reject protocol-relative URLs (//evil.com)
             if (decoded.startsWith('//')) return false;
-            
+
             // Reject absolute URLs with protocols (http://, https://, javascript:, data:, etc.)
             if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(decoded)) return false;
-            
+
             // Reject URLs containing : after the first character (potential protocol)
             if (decoded.includes(':') && !decoded.startsWith('/')) return false;
-            
+
             // Only allow relative paths starting with /
             if (!decoded.startsWith('/')) return false;
-            
+
             // Additional safety: reject paths with suspicious patterns
             // Reject paths containing // anywhere (except at the start which we already checked)
             if (decoded.substring(1).includes('//')) return false;
-            
+
             return true;
           };
 
@@ -170,11 +170,11 @@ export default function Login() {
             emailInput.value = '';
             passwordInput.value = '';
             setFormData({});
-            
+
             // Wait for cookies to persist before redirecting
             // This ensures middleware can read the cookies and won't redirect back to login
             await new Promise(resolve => setTimeout(resolve, 250));
-            
+
             // ✅ SOLUTION 2: Set redirect flag before navigation
             if (typeof window !== 'undefined') {
               (window as any).__isRedirecting = true;
@@ -320,17 +320,17 @@ export default function Login() {
         // Helper function to safely extract and convert value to primitive
         const safeGetValue = (element: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement): string | boolean | number | undefined => {
           if (!element) return undefined;
-          
+
           // Handle checkbox
           if (element instanceof HTMLInputElement && element.type === 'checkbox') {
             return element.checked || false;
           }
-          
+
           // Handle radio buttons
           if (element instanceof HTMLInputElement && element.type === 'radio') {
             return element.checked ? element.value : undefined;
           }
-          
+
           // Handle select (single or multiple)
           if (element instanceof HTMLSelectElement) {
             if (element.multiple) {
@@ -339,13 +339,13 @@ export default function Login() {
             }
             return element.value || '';
           }
-          
+
           // Handle number inputs
           if (element instanceof HTMLInputElement && element.type === 'number') {
             const numValue = parseFloat(element.value);
             return isNaN(numValue) ? '' : numValue;
           }
-          
+
           // Handle all other inputs and textareas - ensure string conversion
           const rawValue = element.value || '';
           if (typeof rawValue === 'string') {
@@ -386,7 +386,7 @@ export default function Login() {
             console.error(`Error querying DOM for input ${inputId}:`, error);
           }
         }
-        
+
         // Skip undefined values (don't store them)
         if (fieldValue === undefined) {
           return;
@@ -397,11 +397,11 @@ export default function Login() {
 
         // Handle special checkbox fields - convert long checkbox text to 'checkbox'
         if (fieldName.toLowerCase().includes('agree') ||
-            fieldName.toLowerCase().includes('contact') ||
-            fieldName.toLowerCase().includes('consent') ||
-            fieldName.toLowerCase().includes('terms') ||
-            fieldName.toLowerCase().includes('privacy') ||
-            (typeof fieldValue === 'boolean' && fieldName.length > 10)) {
+          fieldName.toLowerCase().includes('contact') ||
+          fieldName.toLowerCase().includes('consent') ||
+          fieldName.toLowerCase().includes('terms') ||
+          fieldName.toLowerCase().includes('privacy') ||
+          (typeof fieldValue === 'boolean' && fieldName.length > 10)) {
           normalizedFieldName = 'checkbox';
         }
 
@@ -413,19 +413,19 @@ export default function Login() {
 
       // ✅ CRITICAL FIX: Validate signup form passwords BEFORE executing workflows
       // Check if this is a signup form (has confirm_password field)
-      const isSignupForm = newFormData.hasOwnProperty('confirm_password') || 
-                           newFormData.hasOwnProperty('confirmPassword') ||
-                           newFormData.hasOwnProperty('Confirm Password') ||
-                           newFormData.hasOwnProperty('confirm_password');
-      
+      const isSignupForm = newFormData.hasOwnProperty('confirm_password') ||
+        newFormData.hasOwnProperty('confirmPassword') ||
+        newFormData.hasOwnProperty('Confirm Password') ||
+        newFormData.hasOwnProperty('confirm_password');
+
       if (isSignupForm) {
         // Extract password and confirm password values (check multiple field name variations)
         const password = newFormData.password || newFormData.Password || newFormData['Password'] || '';
-        const confirmPassword = newFormData.confirm_password || 
-                                newFormData.confirmPassword || 
-                                newFormData['Confirm Password'] || 
-                                newFormData['confirm_password'] || '';
-        
+        const confirmPassword = newFormData.confirm_password ||
+          newFormData.confirmPassword ||
+          newFormData['Confirm Password'] ||
+          newFormData['confirm_password'] || '';
+
         // Validate passwords match
         if (password && confirmPassword && password !== confirmPassword) {
           console.error('❌ Password validation failed: Passwords do not match');
@@ -433,7 +433,7 @@ export default function Login() {
           setIsSubmitting(false);
           return; // Exit early - do NOT execute workflows
         }
-        
+
         // Validate password is not empty
         if (!password || password.trim() === '') {
           console.error('❌ Password validation failed: Password is required');
@@ -455,7 +455,7 @@ export default function Login() {
           // ✅ SOLUTION 1: For login forms, call only the login workflow instead of all workflows
           // Check if this is a login form by checking if loginCredentialsRef is set
           const isLoginForm = typeof loginCredentialsRef !== 'undefined' && loginCredentialsRef?.current;
-          
+
           if (isLoginForm && typeof (window as any).executeSpecificFlow === 'function' && typeof (window as any).getFlowChainInfo === 'function') {
             // Find the login workflow chain ID
             const flowChains = (window as any).getFlowChainInfo();
@@ -463,10 +463,10 @@ export default function Login() {
               // Check if this is a login workflow by examining the start node
               const startNode = chain.startNode;
               const authCategory = startNode?.config?._auth_metadata?.auth_block_category;
-              return startNode?.nodeType === 'form' && 
-                     (authCategory?.toLowerCase().includes('login') || authCategory?.toLowerCase().includes('signin'));
+              return startNode?.nodeType === 'form' &&
+                (authCategory?.toLowerCase().includes('login') || authCategory?.toLowerCase().includes('signin'));
             });
-            
+
             if (loginWorkflow) {
               // If we have stored login credentials (Scenario 2), use them for workflow
               if (loginCredentialsRef?.current) {
@@ -477,7 +477,7 @@ export default function Login() {
                 // Clear the ref after using it
                 loginCredentialsRef.current = null;
               }
-              
+
               // Pass form data both at top level and nested for maximum compatibility
               const flowData = {
                 ...newFormData,  // Form fields at top level for easy access
@@ -493,7 +493,7 @@ export default function Login() {
               return; // Exit early after login workflow
             }
           }
-          
+
           // ✅ SOLUTION 3: For signup forms, call only the signup workflow instead of all workflows
           if (isSignupForm && typeof (window as any).executeSpecificFlow === 'function' && typeof (window as any).getFlowChainInfo === 'function') {
             // Find the signup workflow chain ID
@@ -502,12 +502,12 @@ export default function Login() {
               // Check if this is a signup workflow by examining the start node
               const startNode = chain.startNode;
               const authCategory = startNode?.config?._auth_metadata?.auth_block_category;
-              return startNode?.nodeType === 'form' && 
-                     (authCategory?.toLowerCase().includes('signup') || 
-                      authCategory?.toLowerCase().includes('register') ||
-                      authCategory?.toLowerCase().includes('sign-up'));
+              return startNode?.nodeType === 'form' &&
+                (authCategory?.toLowerCase().includes('signup') ||
+                  authCategory?.toLowerCase().includes('register') ||
+                  authCategory?.toLowerCase().includes('sign-up'));
             });
-            
+
             if (signupWorkflow) {
               // Pass form data both at top level and nested for maximum compatibility
               const flowData = {
@@ -524,7 +524,7 @@ export default function Login() {
               return; // Exit early after signup workflow
             }
           }
-          
+
           // If we have stored login credentials (Scenario 2), use them for workflow
           if (typeof loginCredentialsRef !== 'undefined' && loginCredentialsRef?.current) {
             newFormData.email = loginCredentialsRef.current.email;
@@ -534,7 +534,7 @@ export default function Login() {
             // Clear the ref after using it
             loginCredentialsRef.current = null;
           }
-          
+
           // Pass form data both at top level and nested for maximum compatibility
           const flowData = {
             ...newFormData,  // Form fields at top level for easy access
@@ -584,7 +584,8 @@ export default function Login() {
         }
       });
 
-      setFormData({});    } catch (error) {
+      setFormData({});
+    } catch (error) {
       console.error('Form submission error:', error);
 
       // Show error notification
@@ -610,9 +611,9 @@ export default function Login() {
   React.useEffect(() => {
     // Flow Integration System Variables
     let executeAllFlows: any = null;
-    let executeSpecificFlow: any = null; 
+    let executeSpecificFlow: any = null;
     let getFlowChainInfo: any = null;
-    
+
     // Async function to load flow integration
     const loadFlowIntegration = async () => {
       try {
@@ -621,7 +622,7 @@ export default function Login() {
           executeAllFlows = flowIntegration.executeAllFlows;
           executeSpecificFlow = flowIntegration.executeSpecificFlow;
           getFlowChainInfo = flowIntegration.getFlowChainInfo;
-          
+
           // Attach flow functions to window for global access
           if (typeof window !== 'undefined') {
             (window as any).executeAllFlows = executeAllFlows;
@@ -635,20 +636,20 @@ export default function Login() {
               });
               return chains;
             };
-            
+
             // ✅ SOLUTION 5: Intercept router.push to automatically set redirect flag
             if (typeof window !== 'undefined' && typeof router !== 'undefined') {
               const originalPush = router.push;
-              router.push = function(...args: any[]) {
+              router.push = function (...args: any[]) {
                 (window as any).__isRedirecting = true;
-                return originalPush.apply(router, args);
+                return (originalPush as any).apply(router, args);
               };
             }
-            
+
             console.log('🚀 Flow Integration System initialized with', getFlowChainInfo()?.length || 0, 'chains');
-            
+
             // Auto-execute page load workflows if any exist
-            
+
             // ✅ IMPROVED: Execute page load workflows with proper trigger data
             // The master executor will automatically filter by page URL and skip webhook workflows
             const pageLoadKey = 'page-load:' + window.location.pathname;
@@ -677,7 +678,7 @@ export default function Login() {
         executeAllFlows = async () => ({ success: false, message: 'Flow integration not available' });
         executeSpecificFlow = async () => ({ success: false, message: 'Flow integration not available' });
         getFlowChainInfo = () => [];
-        
+
         // Set fallback functions on window
         if (typeof window !== 'undefined') {
           (window as any).executeAllFlows = executeAllFlows;
@@ -690,7 +691,7 @@ export default function Login() {
         }
       }
     };
-    
+
     // Load flow integration
     loadFlowIntegration();
   }, []);
@@ -702,7 +703,7 @@ export default function Login() {
       if (!(window as any).__scriptContext) {
         (window as any).__scriptContext = {
           data: {},
-          setData: function(key: string, value: any) {
+          setData: function (key: string, value: any) {
             this.data[key] = value;
             // Dispatch custom event for data changes
             if (typeof window !== 'undefined') {
@@ -711,10 +712,10 @@ export default function Login() {
               }));
             }
           },
-          getData: function(key: string) {
+          getData: function (key: string) {
             return this.data[key];
           },
-          clearData: function(key?: string) {
+          clearData: function (key?: string) {
             if (key) {
               delete this.data[key];
             } else {
@@ -802,7 +803,7 @@ export default function Login() {
         console.log('🛑 Skipping script event processing - redirect in progress');
         return false;
       }
-      
+
       const executeSpecificFlow = (window as any).executeSpecificFlow;
       const getFlowChainInfo = (window as any).getFlowChainInfo;
       if (typeof executeSpecificFlow !== 'function' || typeof getFlowChainInfo !== 'function') {
@@ -817,7 +818,7 @@ export default function Login() {
         if (typeof window !== 'undefined' && (window as any).__isRedirecting) {
           return;
         }
-        
+
         const scriptId = payload?.scriptId || payload?.script_id;
         const scriptName = payload?.scriptName || payload?.script_name;
         if (!scriptId && !scriptName) return;
@@ -837,7 +838,7 @@ export default function Login() {
         console.log('🛑 Skipping script event handler - redirect in progress');
         return;
       }
-      
+
       const detail = (event as CustomEvent).detail as { key?: string; value?: any } | undefined;
       if (!detail || detail.key !== 'script_done') return;
       const payload = detail.value as any;
@@ -886,580 +887,580 @@ export default function Login() {
     return () => window.removeEventListener('__scriptContextChange', handler as EventListener);
   }, []);
   type ScriptRuntimeEntry = {
-  id?: string;
-  name?: string;
-  order?: number;
-  code: string;
-  input_variables?: Array<{ name?: string; type?: string; source?: string; description?: string }>;
-  output_variables?: Array<{ name?: string; type?: string; source?: string; description?: string }>;
-  scriptElementOverrides?: Record<string, any> | null;
-};
+    id?: string;
+    name?: string;
+    order?: number;
+    code: string;
+    input_variables?: Array<{ name?: string; type?: string; source?: string; description?: string }>;
+    output_variables?: Array<{ name?: string; type?: string; source?: string; description?: string }>;
+    scriptElementOverrides?: Record<string, any> | null;
+  };
 
   type RunScriptsArgs = {
-  componentId: string;
-  eventType: string;
-  scripts: ScriptRuntimeEntry[];
-  element: HTMLElement | null;
-  event?: any;
-  parameters?: Record<string, any>;
-};
+    componentId: string;
+    eventType: string;
+    scripts: ScriptRuntimeEntry[];
+    element: HTMLElement | null;
+    event?: any;
+    parameters?: Record<string, any>;
+  };
 
   const getScriptCleanupStore = () => {
-  if (typeof window === 'undefined') return null;
-  const key = '__scriptCleanupStore';
-  if (!(window as any)[key]) {
-    (window as any)[key] = {};
-  }
-  return (window as any)[key] as Record<string, Array<() => void>>;
-};
+    if (typeof window === 'undefined') return null;
+    const key = '__scriptCleanupStore';
+    if (!(window as any)[key]) {
+      (window as any)[key] = {};
+    }
+    return (window as any)[key] as Record<string, Array<() => void>>;
+  };
 
   const readOutputValue = (out: any, env: any) => {
-  if (!out || !out.name) return undefined;
-  const source = (out.source || 'element').toLowerCase();
-  if (source === 'element') {
-    if (!env.element) return undefined;
-    if (out.name === 'style') {
-      return (env.element as HTMLElement).style?.cssText || '';
+    if (!out || !out.name) return undefined;
+    const source = (out.source || 'element').toLowerCase();
+    if (source === 'element') {
+      if (!env.element) return undefined;
+      if (out.name === 'style') {
+        return (env.element as HTMLElement).style?.cssText || '';
+      }
+      return (env.element as any)[out.name];
     }
-    return (env.element as any)[out.name];
-  }
-  if (source === 'event') {
-    return env.event ? (env.event as any)[out.name] : undefined;
-  }
-  if (source === 'context') {
-    return env.getScriptData ? env.getScriptData(out.name) : undefined;
-  }
-  return undefined;
-};
+    if (source === 'event') {
+      return env.event ? (env.event as any)[out.name] : undefined;
+    }
+    if (source === 'context') {
+      return env.getScriptData ? env.getScriptData(out.name) : undefined;
+    }
+    return undefined;
+  };
 
   const collectScriptOutputs = (script: ScriptRuntimeEntry, env: any) => {
-  const outputs = script?.output_variables;
-  if (!outputs || outputs.length === 0) return {};
-  const values: Record<string, any> = {};
-  outputs.forEach((out) => {
-    if (!out?.name) return;
-    let value = env.getScriptData ? env.getScriptData(out.name) : undefined;
-    if (value === undefined) {
-      value = readOutputValue(out, env);
-    }
-    values[out.name] = value;
-  });
-  return values;
-};
+    const outputs = script?.output_variables;
+    if (!outputs || outputs.length === 0) return {};
+    const values: Record<string, any> = {};
+    outputs.forEach((out) => {
+      if (!out?.name) return;
+      let value = env.getScriptData ? env.getScriptData(out.name) : undefined;
+      if (value === undefined) {
+        value = readOutputValue(out, env);
+      }
+      values[out.name] = value;
+    });
+    return values;
+  };
 
   const dispatchScriptDone = (script: ScriptRuntimeEntry, env: any, extra?: any) => {
-  if (!script || (!script.id && !script.name)) return;
-  const contextData = env.scriptContext && env.scriptContext.data ? env.scriptContext.data : {};
-  const outputValues = collectScriptOutputs(script, env);
-  const payload = {
-    ...contextData,
-    ...outputValues,
-    ...extra,
-    componentId: env?.componentId,
-    elementId: env?.componentId,
-    eventType: env?.eventType,
-    event_type: env?.eventType,
-    scriptId: script.id,
-    scriptName: script.name,
-    timestamp: new Date().toISOString()
+    if (!script || (!script.id && !script.name)) return;
+    const contextData = env.scriptContext && env.scriptContext.data ? env.scriptContext.data : {};
+    const outputValues = collectScriptOutputs(script, env);
+    const payload = {
+      ...contextData,
+      ...outputValues,
+      ...extra,
+      componentId: env?.componentId,
+      elementId: env?.componentId,
+      eventType: env?.eventType,
+      event_type: env?.eventType,
+      scriptId: script.id,
+      scriptName: script.name,
+      timestamp: new Date().toISOString()
+    };
+    if (env.setScriptData) {
+      env.setScriptData('script_done', payload);
+    }
   };
-  if (env.setScriptData) {
-    env.setScriptData('script_done', payload);
-  }
-};
 
   const writeScriptOutputs = (script: ScriptRuntimeEntry, env: any) => {
-  const outputs = script?.output_variables;
-  if (!outputs || outputs.length === 0) return;
-  outputs.forEach((out) => {
-    const value = readOutputValue(out, env);
-    if (out?.name) {
-      env.setScriptData(out.name, value);
-    }
-  });
-};
+    const outputs = script?.output_variables;
+    if (!outputs || outputs.length === 0) return;
+    outputs.forEach((out) => {
+      const value = readOutputValue(out, env);
+      if (out?.name) {
+        env.setScriptData(out.name, value);
+      }
+    });
+  };
 
   const hashString = (value: string) => {
-  let hash = 0;
-  if (!value) return '0';
-  for (let i = 0; i < value.length; i += 1) {
-    hash = ((hash << 5) - hash) + value.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash).toString(36);
-};
+    let hash = 0;
+    if (!value) return '0';
+    for (let i = 0; i < value.length; i += 1) {
+      hash = ((hash << 5) - hash) + value.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash).toString(36);
+  };
 
   const getStableElementId = (el: HTMLElement, root: HTMLElement) => {
-  if (!el || !root) return null;
-  const parts: string[] = [];
-  let current: HTMLElement | null = el;
-  while (current && current !== root) {
-    const tag = current.tagName.toLowerCase();
-    let idx = 0;
-    let sibling = current.previousElementSibling;
-    while (sibling) {
-      if (sibling.tagName === current.tagName) idx += 1;
-      sibling = sibling.previousElementSibling;
+    if (!el || !root) return null;
+    const parts: string[] = [];
+    let current: HTMLElement | null = el;
+    while (current && current !== root) {
+      const tag = current.tagName.toLowerCase();
+      let idx = 0;
+      let sibling = current.previousElementSibling;
+      while (sibling) {
+        if (sibling.tagName === current.tagName) idx += 1;
+        sibling = sibling.previousElementSibling;
+      }
+      parts.unshift(`${tag}:${idx}`);
+      current = current.parentElement;
     }
-    parts.unshift(`${tag}:${idx}`);
-    current = current.parentElement;
-  }
-  if (!parts.length) return null;
-  return `auto-${hashString(parts.join('/'))}`;
-};
+    if (!parts.length) return null;
+    return `auto-${hashString(parts.join('/'))}`;
+  };
 
   const assignScriptElementIds = (root: HTMLElement) => {
-  if (!root || !root.querySelectorAll) return;
-  const eligible = root.querySelectorAll('button, input, select, textarea, a, label, h1, h2, h3, h4, h5, h6, p, span, div');
-  for (let i = 0; i < eligible.length; i += 1) {
-    const el = eligible[i] as HTMLElement;
-    if (!el.getAttribute('data-script-el-id')) {
-      const stableId = getStableElementId(el, root);
-      el.setAttribute('data-script-el-id', stableId || `auto-${i}`);
-      el.setAttribute('data-script-el-type', el.tagName.toLowerCase());
+    if (!root || !root.querySelectorAll) return;
+    const eligible = root.querySelectorAll('button, input, select, textarea, a, label, h1, h2, h3, h4, h5, h6, p, span, div');
+    for (let i = 0; i < eligible.length; i += 1) {
+      const el = eligible[i] as HTMLElement;
+      if (!el.getAttribute('data-script-el-id')) {
+        const stableId = getStableElementId(el, root);
+        el.setAttribute('data-script-el-id', stableId || `auto-${i}`);
+        el.setAttribute('data-script-el-type', el.tagName.toLowerCase());
+      }
     }
-  }
-};
+  };
 
   const ensureScriptElementClones = (root: HTMLElement, overrides?: Record<string, any> | null) => {
-  if (!root || !overrides) return;
-  let created = false;
-  Object.keys(overrides).forEach((elementId) => {
-    const entry = overrides[elementId];
-    if (!entry || !entry.cloneFrom) return;
-    const existing = root.querySelector('[data-script-el-id="' + elementId + '"]') as HTMLElement | null;
-    if (existing) return;
-    const source = root.querySelector('[data-script-el-id="' + entry.cloneFrom + '"]') as HTMLElement | null;
-    if (!source) return;
-    const parent =
-      (entry.parentId && root.querySelector('[data-script-el-id="' + entry.parentId + '"]')) ||
-      source.parentElement;
-    if (!parent) return;
+    if (!root || !overrides) return;
+    let created = false;
+    Object.keys(overrides).forEach((elementId) => {
+      const entry = overrides[elementId];
+      if (!entry || !entry.cloneFrom) return;
+      const existing = root.querySelector('[data-script-el-id="' + elementId + '"]') as HTMLElement | null;
+      if (existing) return;
+      const source = root.querySelector('[data-script-el-id="' + entry.cloneFrom + '"]') as HTMLElement | null;
+      if (!source) return;
+      const parent =
+        (entry.parentId && root.querySelector('[data-script-el-id="' + entry.parentId + '"]')) ||
+        source.parentElement;
+      if (!parent) return;
 
-    const cloned = source.cloneNode(true) as HTMLElement;
-    if (cloned.removeAttribute) {
-      cloned.removeAttribute('data-script-el-id');
-      cloned.removeAttribute('data-script-el-type');
-    }
-    if (cloned.querySelectorAll) {
-      const descendants = cloned.querySelectorAll('[data-script-el-id]');
-      descendants.forEach((node) => {
-        if ((node as HTMLElement).removeAttribute) {
-          (node as HTMLElement).removeAttribute('data-script-el-id');
-          (node as HTMLElement).removeAttribute('data-script-el-type');
-        }
-      });
-    }
-    cloned.setAttribute('data-script-el-id', elementId);
-    cloned.setAttribute('data-script-el-type', cloned.tagName.toLowerCase());
+      const cloned = source.cloneNode(true) as HTMLElement;
+      if (cloned.removeAttribute) {
+        cloned.removeAttribute('data-script-el-id');
+        cloned.removeAttribute('data-script-el-type');
+      }
+      if (cloned.querySelectorAll) {
+        const descendants = cloned.querySelectorAll('[data-script-el-id]');
+        descendants.forEach((node) => {
+          if ((node as HTMLElement).removeAttribute) {
+            (node as HTMLElement).removeAttribute('data-script-el-id');
+            (node as HTMLElement).removeAttribute('data-script-el-type');
+          }
+        });
+      }
+      cloned.setAttribute('data-script-el-id', elementId);
+      cloned.setAttribute('data-script-el-type', cloned.tagName.toLowerCase());
 
-    if (source.parentElement === parent && source.nextSibling) {
-      parent.insertBefore(cloned, source.nextSibling);
-    } else {
-      parent.appendChild(cloned);
-    }
-    created = true;
-  });
+      if (source.parentElement === parent && source.nextSibling) {
+        parent.insertBefore(cloned, source.nextSibling);
+      } else {
+        parent.appendChild(cloned);
+      }
+      created = true;
+    });
 
-  if (created) {
-    assignScriptElementIds(root);
-  }
-};
+    if (created) {
+      assignScriptElementIds(root);
+    }
+  };
 
   const attachPageLinkHandler = (el: HTMLElement, pageId: string) => {
-  if (!el) return;
-  const anyEl = el as any;
-  const linkToPage = el.getAttribute('data-link-to-page');
-  const rawPageId = pageId || el.getAttribute('data-page-link') || '';
-  
-  // Detect if we're in preview mode
-  // Preview mode: navigateToPage expects page IDs (e.g., 'page-17707911380889957')
-  // Deployment mode: navigateToPage expects page slugs (e.g., 'page-2')
-  const isPreviewMode = typeof window !== 'undefined' && 
-    (window.location?.pathname?.includes('/preview') || 
-     window.location?.pathname?.includes('/internal_preview'));
-  
-  const computeNavigationTarget = () => {
-    // In preview mode, use page ID directly
-    if (isPreviewMode && rawPageId) {
-      return rawPageId;
-    }
-    
-    // In deployment mode:
-    // Priority 1: Use data-link-to-page (page name) - preferred for deployment
-    if (linkToPage) {
-      return linkToPage.toLowerCase().replace(/\s+/g, '-');
-    }
-    
-    // Priority 2: Try to map page ID to slug using __pageIdToSlug (if available)
-    if (!rawPageId) return '';
-    if (typeof window !== 'undefined') {
-      try {
-        const idToSlug = (window as any).__pageIdToSlug;
-        if (idToSlug && typeof idToSlug === 'object') {
-          const mapped = idToSlug[rawPageId];
-          if (mapped) {
-            const slugStr = String(mapped);
-            // Remove leading slash if present (avoid regex escaping issues in generated code)
-            return (slugStr.startsWith('/') ? slugStr.slice(1) : slugStr).toLowerCase();
-          }
-        }
-      } catch (e) {
-        // __pageIdToSlug might not exist - that's okay, fall through to default
-      }
-    }
-    
-    // Priority 3: Fallback - convert page ID to slug format
-    return rawPageId.replace(/^page-/, '').toLowerCase();
-  };
-  
-  const navigationTarget = computeNavigationTarget();
-  if (!navigationTarget) return;
-  
-  if (anyEl.__pageLinkHandler) {
-    if (anyEl.__pageLinkHandlerPageId === navigationTarget) return;
-    el.removeEventListener('click', anyEl.__pageLinkHandler);
-  }
-  
-  const handler = (e: Event) => {
-    try { e.preventDefault(); } catch (err) {}
-    const target = computeNavigationTarget();
-    if (!target) return;
-    if (typeof window !== 'undefined') {
-      if (typeof (window as any).navigateToPage === 'function') {
-        (window as any).navigateToPage(target);
-        return;
-      }
-      if (window.parent && typeof (window.parent as any).navigateToPage === 'function') {
-        (window.parent as any).navigateToPage(target);
-        return;
-      }
-      try {
-        window.location.assign('/' + target);
-      } catch (err) {}
-    }
-  };
-  
-  el.addEventListener('click', handler);
-  anyEl.__pageLinkHandler = handler;
-  anyEl.__pageLinkHandlerPageId = navigationTarget;
-  try { el.style.setProperty('cursor', 'pointer'); } catch (e) {}
-  try { el.style.setProperty('pointer-events', 'auto'); } catch (e) {}
-  try { (el as any).disabled = false; } catch (e) {}
-};
+    if (!el) return;
+    const anyEl = el as any;
+    const linkToPage = el.getAttribute('data-link-to-page');
+    const rawPageId = pageId || el.getAttribute('data-page-link') || '';
 
-  const applyScriptElementOverrides = (root: HTMLElement, overrides?: Record<string, any> | null) => {
-  if (!root || !overrides) return;
-  ensureScriptElementClones(root, overrides);
-  Object.keys(overrides).forEach((elementId) => {
-    const entry = overrides[elementId];
-    const element = elementId === '__root__'
-      ? root
-      : root.querySelector('[data-script-el-id="' + elementId + '"]') as HTMLElement | null;
-    if (!element) return;
-    if (entry && entry.style) {
-      Object.keys(entry.style).forEach((prop) => {
+    // Detect if we're in preview mode
+    // Preview mode: navigateToPage expects page IDs (e.g., 'page-17707911380889957')
+    // Deployment mode: navigateToPage expects page slugs (e.g., 'page-2')
+    const isPreviewMode = typeof window !== 'undefined' &&
+      (window.location?.pathname?.includes('/preview') ||
+        window.location?.pathname?.includes('/internal_preview'));
+
+    const computeNavigationTarget = () => {
+      // In preview mode, use page ID directly
+      if (isPreviewMode && rawPageId) {
+        return rawPageId;
+      }
+
+      // In deployment mode:
+      // Priority 1: Use data-link-to-page (page name) - preferred for deployment
+      if (linkToPage) {
+        return linkToPage.toLowerCase().replace(/\s+/g, '-');
+      }
+
+      // Priority 2: Try to map page ID to slug using __pageIdToSlug (if available)
+      if (!rawPageId) return '';
+      if (typeof window !== 'undefined') {
         try {
-          element.style.setProperty(prop, entry.style[prop]);
-        } catch (e) {
-          // ignore invalid style props
-        }
-      });
-    }
-    if (entry && entry.attributes) {
-      const hasPageLink =
-        !!entry.attributes['data-page-link'] ||
-        !!entry.attributes['data-link-to-page'] ||
-        (typeof entry.attributes.onclick === 'string' && entry.attributes.onclick.includes('navigateToPage'));
-      
-      // Detect preview mode - in preview, keep onclick handler as-is (it uses page ID)
-      const isPreviewMode = typeof window !== 'undefined' && 
-        (window.location?.pathname?.includes('/preview') || 
-         window.location?.pathname?.includes('/internal_preview'));
-      
-      Object.keys(entry.attributes).forEach((attr) => {
-        try {
-          // In preview mode with page link, preserve onclick handler (it already uses page ID)
-          if (hasPageLink && attr === 'onclick' && isPreviewMode) {
-            // Keep the onclick handler as-is in preview mode
-            const value = entry.attributes[attr];
-            if (value && typeof value === 'string' && value.includes('navigateToPage')) {
-              element.setAttribute(attr, String(value));
-              return;
+          const idToSlug = (window as any).__pageIdToSlug;
+          if (idToSlug && typeof idToSlug === 'object') {
+            const mapped = idToSlug[rawPageId];
+            if (mapped) {
+              const slugStr = String(mapped);
+              // Remove leading slash if present (avoid regex escaping issues in generated code)
+              return (slugStr.startsWith('/') ? slugStr.slice(1) : slugStr).toLowerCase();
             }
           }
-          
-          // Skip setting onclick if we'll handle it via attachPageLinkHandler (deployment mode)
-          if (hasPageLink && attr === 'onclick' && typeof entry.attributes.onclick === 'string' && entry.attributes.onclick.includes('navigateToPage')) {
-            return;
-          }
-          
-          const value = entry.attributes[attr];
-          if (value === '' || value === null || value === undefined) {
-            element.removeAttribute(attr);
-          } else {
-            element.setAttribute(attr, String(value));
-          }
         } catch (e) {
-          // ignore invalid attributes
+          // __pageIdToSlug might not exist - that's okay, fall through to default
         }
-      });
-      
-      // Only replace onclick handler in deployment mode (not preview)
-      if (hasPageLink && !isPreviewMode) {
+      }
+
+      // Priority 3: Fallback - convert page ID to slug format
+      return rawPageId.replace(/^page-/, '').toLowerCase();
+    };
+
+    const navigationTarget = computeNavigationTarget();
+    if (!navigationTarget) return;
+
+    if (anyEl.__pageLinkHandler) {
+      if (anyEl.__pageLinkHandlerPageId === navigationTarget) return;
+      el.removeEventListener('click', anyEl.__pageLinkHandler);
+    }
+
+    const handler = (e: Event) => {
+      try { e.preventDefault(); } catch (err) { }
+      const target = computeNavigationTarget();
+      if (!target) return;
+      if (typeof window !== 'undefined') {
+        if (typeof (window as any).navigateToPage === 'function') {
+          (window as any).navigateToPage(target);
+          return;
+        }
+        if (window.parent && typeof (window.parent as any).navigateToPage === 'function') {
+          (window.parent as any).navigateToPage(target);
+          return;
+        }
         try {
-          element.removeAttribute('onclick');
-        } catch (e) {}
-        const pageId = entry.attributes['data-page-link'] || element.getAttribute('data-page-link');
-        if (pageId) {
-          attachPageLinkHandler(element, String(pageId));
+          window.location.assign('/' + target);
+        } catch (err) { }
+      }
+    };
+
+    el.addEventListener('click', handler);
+    anyEl.__pageLinkHandler = handler;
+    anyEl.__pageLinkHandlerPageId = navigationTarget;
+    try { el.style.setProperty('cursor', 'pointer'); } catch (e) { }
+    try { el.style.setProperty('pointer-events', 'auto'); } catch (e) { }
+    try { (el as any).disabled = false; } catch (e) { }
+  };
+
+  const applyScriptElementOverrides = (root: HTMLElement, overrides?: Record<string, any> | null) => {
+    if (!root || !overrides) return;
+    ensureScriptElementClones(root, overrides);
+    Object.keys(overrides).forEach((elementId) => {
+      const entry = overrides[elementId];
+      const element = elementId === '__root__'
+        ? root
+        : root.querySelector('[data-script-el-id="' + elementId + '"]') as HTMLElement | null;
+      if (!element) return;
+      if (entry && entry.style) {
+        Object.keys(entry.style).forEach((prop) => {
+          try {
+            element.style.setProperty(prop, entry.style[prop]);
+          } catch (e) {
+            // ignore invalid style props
+          }
+        });
+      }
+      if (entry && entry.attributes) {
+        const hasPageLink =
+          !!entry.attributes['data-page-link'] ||
+          !!entry.attributes['data-link-to-page'] ||
+          (typeof entry.attributes.onclick === 'string' && entry.attributes.onclick.includes('navigateToPage'));
+
+        // Detect preview mode - in preview, keep onclick handler as-is (it uses page ID)
+        const isPreviewMode = typeof window !== 'undefined' &&
+          (window.location?.pathname?.includes('/preview') ||
+            window.location?.pathname?.includes('/internal_preview'));
+
+        Object.keys(entry.attributes).forEach((attr) => {
+          try {
+            // In preview mode with page link, preserve onclick handler (it already uses page ID)
+            if (hasPageLink && attr === 'onclick' && isPreviewMode) {
+              // Keep the onclick handler as-is in preview mode
+              const value = entry.attributes[attr];
+              if (value && typeof value === 'string' && value.includes('navigateToPage')) {
+                element.setAttribute(attr, String(value));
+                return;
+              }
+            }
+
+            // Skip setting onclick if we'll handle it via attachPageLinkHandler (deployment mode)
+            if (hasPageLink && attr === 'onclick' && typeof entry.attributes.onclick === 'string' && entry.attributes.onclick.includes('navigateToPage')) {
+              return;
+            }
+
+            const value = entry.attributes[attr];
+            if (value === '' || value === null || value === undefined) {
+              element.removeAttribute(attr);
+            } else {
+              element.setAttribute(attr, String(value));
+            }
+          } catch (e) {
+            // ignore invalid attributes
+          }
+        });
+
+        // Only replace onclick handler in deployment mode (not preview)
+        if (hasPageLink && !isPreviewMode) {
+          try {
+            element.removeAttribute('onclick');
+          } catch (e) { }
+          const pageId = entry.attributes['data-page-link'] || element.getAttribute('data-page-link');
+          if (pageId) {
+            attachPageLinkHandler(element, String(pageId));
+          }
         }
       }
-    }
-    if (entry && typeof entry.text === 'string') {
-      if (element.children.length > 0) {
-        return;
+      if (entry && typeof entry.text === 'string') {
+        if (element.children.length > 0) {
+          return;
+        }
+        element.textContent = entry.text;
       }
-      element.textContent = entry.text;
-    }
-    if (entry && Array.isArray(entry.order)) {
-      const parentEl = element;
-      const children = Array.from(parentEl.children);
-      const byId: Record<string, Element> = {};
-      children.forEach((child) => {
-        const cid = (child as HTMLElement).getAttribute('data-script-el-id');
-        if (cid) byId[cid] = child;
-      });
-      entry.order.forEach((childId: string) => {
-        const node = byId[childId];
-        if (node) parentEl.appendChild(node);
-      });
-    }
-  });
-};
+      if (entry && Array.isArray(entry.order)) {
+        const parentEl = element;
+        const children = Array.from(parentEl.children);
+        const byId: Record<string, Element> = {};
+        children.forEach((child) => {
+          const cid = (child as HTMLElement).getAttribute('data-script-el-id');
+          if (cid) byId[cid] = child;
+        });
+        entry.order.forEach((childId: string) => {
+          const node = byId[childId];
+          if (node) parentEl.appendChild(node);
+        });
+      }
+    });
+  };
 
   const resolveOverrideRoot = (env: any) => {
-  if (env.element) return env.element as HTMLElement;
-  if (env.componentId) {
-    const byId = document.getElementById(env.componentId);
-    if (byId) return byId as HTMLElement;
-    const byData = document.querySelector('[data-component-id="' + env.componentId + '"]');
-    if (byData) return byData as HTMLElement;
-  }
-  return null;
-};
+    if (env.element) return env.element as HTMLElement;
+    if (env.componentId) {
+      const byId = document.getElementById(env.componentId);
+      if (byId) return byId as HTMLElement;
+      const byData = document.querySelector('[data-component-id="' + env.componentId + '"]');
+      if (byData) return byData as HTMLElement;
+    }
+    return null;
+  };
 
   const applyOverridesIfNeeded = (script: ScriptRuntimeEntry, env: any) => {
-  if (!script?.scriptElementOverrides) return;
-  let overrides: Record<string, any> | null = script.scriptElementOverrides as any;
-  if (typeof overrides === 'string') {
-    try {
-      overrides = JSON.parse(overrides);
-    } catch (e) {
-      overrides = null;
+    if (!script?.scriptElementOverrides) return;
+    let overrides: Record<string, any> | null = script.scriptElementOverrides as any;
+    if (typeof overrides === 'string') {
+      try {
+        overrides = JSON.parse(overrides);
+      } catch (e) {
+        overrides = null;
+      }
     }
-  }
-  if (!overrides) return;
-  const root = resolveOverrideRoot(env);
-  if (!root) return;
-  assignScriptElementIds(root);
-  applyScriptElementOverrides(root, overrides);
-};
+    if (!overrides) return;
+    const root = resolveOverrideRoot(env);
+    if (!root) return;
+    assignScriptElementIds(root);
+    applyScriptElementOverrides(root, overrides);
+  };
 
   const runSingleScript = (script: ScriptRuntimeEntry, env: any) => {
-  try {
-    let dispatched = false;
-    const outputNames = (script?.output_variables || [])
-      .map((out) => out?.name)
-      .filter(Boolean) as string[];
-    const finalize = (scriptRuntimeEnv: any) => {
-      applyOverridesIfNeeded(script, scriptRuntimeEnv);
-      writeScriptOutputs(script, scriptRuntimeEnv);
-      attemptAutoDispatch(scriptRuntimeEnv);
-    };
-    const attemptAutoDispatch = (scriptRuntimeEnv: any) => {
-      if (dispatched) return;
-      if (outputNames.length === 0) {
-        dispatchScriptDone(script, scriptRuntimeEnv);
+    try {
+      let dispatched = false;
+      const outputNames = (script?.output_variables || [])
+        .map((out) => out?.name)
+        .filter(Boolean) as string[];
+      const finalize = (scriptRuntimeEnv: any) => {
+        applyOverridesIfNeeded(script, scriptRuntimeEnv);
+        writeScriptOutputs(script, scriptRuntimeEnv);
+        attemptAutoDispatch(scriptRuntimeEnv);
+      };
+      const attemptAutoDispatch = (scriptRuntimeEnv: any) => {
+        if (dispatched) return;
+        if (outputNames.length === 0) {
+          dispatchScriptDone(script, scriptRuntimeEnv);
+          return;
+        }
+        const outputValues = collectScriptOutputs(script, scriptRuntimeEnv);
+        const allReady = outputNames.every((name) => outputValues[name] !== undefined);
+        if (allReady) {
+          dispatchScriptDone(script, scriptRuntimeEnv);
+        }
+      };
+      const baseSetScriptData = env.setScriptData;
+      let scriptEnv: any = null;
+      const wrappedSetScriptData = (key: string, value: any) => {
+        if (typeof baseSetScriptData === 'function') {
+          baseSetScriptData(key, value);
+        }
+        if (scriptEnv) {
+          if (key !== 'script_done') {
+            attemptAutoDispatch(scriptEnv);
+          }
+        }
+      };
+      // Get parameters from env or fallback to script context
+      let scriptParameters = env.parameters || {};
+      if (env.getScriptData && Object.keys(scriptParameters).length === 0) {
+        // Try to get parameters from script context if not provided directly
+        const scriptContextParams = env.getScriptData('scriptEventParameters');
+        if (scriptContextParams && typeof scriptContextParams === 'object') {
+          scriptParameters = scriptContextParams;
+        }
+      }
+
+      // Create output object proxy for scripts that use output.variableName = value pattern
+      // This allows scripts to use either setScriptData('key', value) or output.key = value
+      const outputProxy: Record<string, any> = {};
+      const outputHandler = {
+        set: (target: Record<string, any>, prop: string, value: any) => {
+          // Set the value in the proxy object
+          target[prop] = value;
+          // Also set it via setScriptData for proper tracking
+          if (typeof wrappedSetScriptData === 'function') {
+            wrappedSetScriptData(prop, value);
+          }
+          return true;
+        },
+        get: (target: Record<string, any>, prop: string) => {
+          // Return the value from the proxy object or from script context
+          if (prop in target) {
+            return target[prop];
+          }
+          // Fallback to getting from script context
+          if (env.getScriptData && typeof env.getScriptData === 'function') {
+            return env.getScriptData(prop);
+          }
+          return undefined;
+        }
+      };
+      const output = new Proxy(outputProxy, outputHandler);
+
+      scriptEnv = {
+        ...env,
+        scriptId: script?.id,
+        scriptName: script?.name,
+        parameters: scriptParameters,
+        output: output,
+        dispatchScriptDone: (extra?: any) => {
+          dispatched = true;
+          dispatchScriptDone(script, env, extra);
+        },
+        setScriptData: wrappedSetScriptData
+      };
+      const fn = new Function(
+        'env',
+        'const { element, event, scriptContext, setScriptData, getScriptData, clearScriptData, onCleanup, componentId, eventType, scriptId, scriptName, dispatchScriptDone, parameters, output } = env;\n' +
+        script.code
+      );
+      const result = fn(scriptEnv);
+      if (result && typeof result.then === 'function') {
+        result
+          .then(() => finalize(scriptEnv))
+          .catch((error: any) => {
+            console.error('Error executing async user script:', script?.name || script?.id, error);
+            finalize(scriptEnv);
+          });
         return;
       }
-      const outputValues = collectScriptOutputs(script, scriptRuntimeEnv);
-      const allReady = outputNames.every((name) => outputValues[name] !== undefined);
-      if (allReady) {
-        dispatchScriptDone(script, scriptRuntimeEnv);
+      if (typeof result === 'function') {
+        scriptEnv.onCleanup(result);
       }
-    };
-    const baseSetScriptData = env.setScriptData;
-    let scriptEnv: any = null;
-    const wrappedSetScriptData = (key: string, value: any) => {
-      if (typeof baseSetScriptData === 'function') {
-        baseSetScriptData(key, value);
-      }
-      if (scriptEnv) {
-        if (key !== 'script_done') {
-          attemptAutoDispatch(scriptEnv);
-        }
-      }
-    };
-    // Get parameters from env or fallback to script context
-    let scriptParameters = env.parameters || {};
-    if (env.getScriptData && Object.keys(scriptParameters).length === 0) {
-      // Try to get parameters from script context if not provided directly
-      const scriptContextParams = env.getScriptData('scriptEventParameters');
-      if (scriptContextParams && typeof scriptContextParams === 'object') {
-        scriptParameters = scriptContextParams;
-      }
+      finalize(scriptEnv);
+    } catch (error) {
+      console.error('Error executing user script:', script?.name || script?.id, error);
     }
-    
-    // Create output object proxy for scripts that use output.variableName = value pattern
-    // This allows scripts to use either setScriptData('key', value) or output.key = value
-    const outputProxy: Record<string, any> = {};
-    const outputHandler = {
-      set: (target: Record<string, any>, prop: string, value: any) => {
-        // Set the value in the proxy object
-        target[prop] = value;
-        // Also set it via setScriptData for proper tracking
-        if (typeof wrappedSetScriptData === 'function') {
-          wrappedSetScriptData(prop, value);
-        }
-        return true;
-      },
-      get: (target: Record<string, any>, prop: string) => {
-        // Return the value from the proxy object or from script context
-        if (prop in target) {
-          return target[prop];
-        }
-        // Fallback to getting from script context
-        if (env.getScriptData && typeof env.getScriptData === 'function') {
-          return env.getScriptData(prop);
-        }
-        return undefined;
-      }
-    };
-    const output = new Proxy(outputProxy, outputHandler);
-    
-    scriptEnv = {
-      ...env,
-      scriptId: script?.id,
-      scriptName: script?.name,
-      parameters: scriptParameters,
-      output: output,
-      dispatchScriptDone: (extra?: any) => {
-        dispatched = true;
-        dispatchScriptDone(script, env, extra);
-      },
-      setScriptData: wrappedSetScriptData
-    };
-    const fn = new Function(
-      'env',
-      'const { element, event, scriptContext, setScriptData, getScriptData, clearScriptData, onCleanup, componentId, eventType, scriptId, scriptName, dispatchScriptDone, parameters, output } = env;\n' +
-        script.code
-    );
-    const result = fn(scriptEnv);
-    if (result && typeof result.then === 'function') {
-      result
-        .then(() => finalize(scriptEnv))
-        .catch((error: any) => {
-          console.error('Error executing async user script:', script?.name || script?.id, error);
-          finalize(scriptEnv);
-        });
-      return;
-    }
-    if (typeof result === 'function') {
-      scriptEnv.onCleanup(result);
-    }
-    finalize(scriptEnv);
-  } catch (error) {
-    console.error('Error executing user script:', script?.name || script?.id, error);
-  }
-};
+  };
 
   const runComponentScripts = (args: RunScriptsArgs) => {
-  const { componentId, eventType, scripts, element, event, parameters } = args;
-  if (!scripts || scripts.length === 0) return () => {};
-  const cleanupKey = componentId + '::' + eventType;
-  const store = getScriptCleanupStore();
-  if (store && store[cleanupKey]) {
-    store[cleanupKey].forEach((fn) => {
-      try { fn(); } catch (e) {}
-    });
-    delete store[cleanupKey];
-  }
+    const { componentId, eventType, scripts, element, event, parameters } = args;
+    if (!scripts || scripts.length === 0) return () => { };
+    const cleanupKey = componentId + '::' + eventType;
+    const store = getScriptCleanupStore();
+    if (store && store[cleanupKey]) {
+      store[cleanupKey].forEach((fn) => {
+        try { fn(); } catch (e) { }
+      });
+      delete store[cleanupKey];
+    }
 
-  const cleanupFns: Array<() => void> = [];
-  const onCleanup = (fn: () => void) => {
-    if (typeof fn === 'function') cleanupFns.push(fn);
-  };
+    const cleanupFns: Array<() => void> = [];
+    const onCleanup = (fn: () => void) => {
+      if (typeof fn === 'function') cleanupFns.push(fn);
+    };
 
-  const scriptContext = (typeof window !== 'undefined' && (window as any).__scriptContext)
-    ? (window as any).__scriptContext
-    : null;
-  const setScriptData = (key: string, value: any) => {
-    if (scriptContext) scriptContext.setData(key, value);
-  };
-  const getScriptData = (key: string) => {
-    return scriptContext ? scriptContext.getData(key) : undefined;
-  };
-  const clearScriptData = (key?: string) => {
-    if (scriptContext) scriptContext.clearData(key);
-  };
+    const scriptContext = (typeof window !== 'undefined' && (window as any).__scriptContext)
+      ? (window as any).__scriptContext
+      : null;
+    const setScriptData = (key: string, value: any) => {
+      if (scriptContext) scriptContext.setData(key, value);
+    };
+    const getScriptData = (key: string) => {
+      return scriptContext ? scriptContext.getData(key) : undefined;
+    };
+    const clearScriptData = (key?: string) => {
+      if (scriptContext) scriptContext.clearData(key);
+    };
 
-  const env = {
-    element,
-    event,
-    componentId,
-    eventType,
-    scriptContext,
-    setScriptData,
-    getScriptData,
-    clearScriptData,
-    onCleanup,
-    parameters: parameters || {}
+    const env = {
+      element,
+      event,
+      componentId,
+      eventType,
+      scriptContext,
+      setScriptData,
+      getScriptData,
+      clearScriptData,
+      onCleanup,
+      parameters: parameters || {}
+    };
+
+    const orderedScripts = [...scripts].sort((a, b) => (a.order || 0) - (b.order || 0));
+    orderedScripts.forEach((script) => runSingleScript(script, env));
+
+    if (store) {
+      store[cleanupKey] = cleanupFns;
+    }
+
+    return () => {
+      cleanupFns.forEach((fn) => {
+        try { fn(); } catch (e) { }
+      });
+      if (store) delete store[cleanupKey];
+    };
   };
-
-  const orderedScripts = [...scripts].sort((a, b) => (a.order || 0) - (b.order || 0));
-  orderedScripts.forEach((script) => runSingleScript(script, env));
-
-  if (store) {
-    store[cleanupKey] = cleanupFns;
-  }
-
-  return () => {
-    cleanupFns.forEach((fn) => {
-      try { fn(); } catch (e) {}
-    });
-    if (store) delete store[cleanupKey];
-  };
-};
 
   return (
-<> 
-<div style={{ width: "100%", display: "grid", position: "relative", minHeight: "100vh", gridTemplateRows: "repeat(auto-fill, minmax(30px, auto))", gridTemplateColumns: "repeat(12, 1fr)" }} id="page-container-undefined">
-      <div style={{ width: "100%", display: "flex", padding: "20px", gridArea: "1 / 1 / 23 / 13", overflow: "hidden", position: "relative", minHeight: "660px", gridRowEnd: 23, alignItems: "flex-start", paddingTop: "0", gridRowStart: 1, paddingLeft: "0", gridColumnEnd: 13, paddingRight: "0", flexDirection: "row", paddingBottom: "0", backgroundColor: "black", gridColumnStart: 1, justifyContent: "space-between" }} id="component-1770707323574-5198">
-        <div style={{ width: "884.0000610351562px", border: "none", height: "845.0000610351562px", display: "flex", padding: "0.5rem", overflow: "visible", minHeight: "3.125rem", alignItems: "center", flexDirection: "row", backgroundColor: "", justifyContent: "center" }} id="nested-1771071263427-9817">
-          <div style={{ width: "600px", height: "600px", display: "flex", padding: "20px", minHeight: "100vh", alignItems: "center", flexDirection: "column", justifyContent: "center", backgroundColor: "#f5f5f5" }} id="nested-1771072406223-1354">
-            <div style={{ width: "100%", padding: "40px", maxWidth: "400px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)", borderRadius: "8px", backgroundColor: "#ffffff" }} id="id-17710724062234839">
-              <h1 style={{ color: "#333", fontSize: "28px", textAlign: "center", fontWeight: "bold", marginBottom: "30px" }} id="id-17710724062231737">Login</h1>
-              <form style={{ method: "POST", formAction: "/api/auth/login" }} data-component-id="id-17710724062232715" onSubmit={(e) => handleid17710724062232715Submit(e, 'id-17710724062232715')}>
-                <input style={{ width: "100%", border: "1px solid #ddd", padding: "12px", fontSize: "16px", borderRadius: "4px", marginBottom: "20px" }} data-component-id="id-17710724062237485" ref={(el) => { if(el) inputRefs.current['id-17710724062237485'] = el; }} name="email" type="email" placeholder="Email" required={true} />
-                <input style={{ width: "100%", border: "1px solid #ddd", padding: "12px", fontSize: "16px", borderRadius: "4px", marginBottom: "20px" }} data-component-id="id-17710724062239844" ref={(el) => { if(el) inputRefs.current['id-17710724062239844'] = el; }} name="password" type="password" placeholder="Password" required={true} />
-                
-            {loginError && (
-              <div style={{ color: "#dc3545", fontSize: "14px", marginBottom: "15px", padding: "10px", backgroundColor: "#f8d7da", borderRadius: "4px", border: "1px solid #f5c6cb" }}>
-                {loginError}
+    <>
+      <div style={{ width: "100%", display: "grid", position: "relative", minHeight: "100vh", gridTemplateRows: "repeat(auto-fill, minmax(30px, auto))", gridTemplateColumns: "repeat(12, 1fr)" }} id="page-container-undefined">
+        <div style={{ width: "100%", display: "flex", padding: "20px", gridArea: "1 / 1 / 23 / 13", overflow: "hidden", position: "relative", minHeight: "660px", gridRowEnd: 23, alignItems: "flex-start", paddingTop: "0", gridRowStart: 1, paddingLeft: "0", gridColumnEnd: 13, paddingRight: "0", flexDirection: "row", paddingBottom: "0", backgroundColor: "black", gridColumnStart: 1, justifyContent: "space-between" }} id="component-1770707323574-5198">
+          <div style={{ width: "884.0000610351562px", border: "none", height: "845.0000610351562px", display: "flex", padding: "0.5rem", overflow: "visible", minHeight: "3.125rem", alignItems: "center", flexDirection: "row", backgroundColor: "", justifyContent: "center" }} id="nested-1771071263427-9817">
+            <div style={{ width: "600px", height: "600px", display: "flex", padding: "20px", minHeight: "100vh", alignItems: "center", flexDirection: "column", justifyContent: "center", backgroundColor: "#f5f5f5" }} id="nested-1771072406223-1354">
+              <div style={{ width: "100%", padding: "40px", maxWidth: "400px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)", borderRadius: "8px", backgroundColor: "#ffffff" }} id="id-17710724062234839">
+                <h1 style={{ color: "#333", fontSize: "28px", textAlign: "center", fontWeight: "bold", marginBottom: "30px" }} id="id-17710724062231737">Login</h1>
+                <form data-component-id="id-17710724062232715" onSubmit={(e) => handleid17710724062232715Submit(e, 'id-17710724062232715')}>
+                  <input style={{ width: "100%", border: "1px solid #ddd", padding: "12px", fontSize: "16px", borderRadius: "4px", marginBottom: "20px" }} data-component-id="id-17710724062237485" ref={(el) => { if (el) inputRefs.current['id-17710724062237485'] = el; }} name="email" type="email" placeholder="Email" required={true} />
+                  <input style={{ width: "100%", border: "1px solid #ddd", padding: "12px", fontSize: "16px", borderRadius: "4px", marginBottom: "20px" }} data-component-id="id-17710724062239844" ref={(el) => { if (el) inputRefs.current['id-17710724062239844'] = el; }} name="password" type="password" placeholder="Password" required={true} />
+
+                  {loginError && (
+                    <div style={{ color: "#dc3545", fontSize: "14px", marginBottom: "15px", padding: "10px", backgroundColor: "#f8d7da", borderRadius: "4px", border: "1px solid #f5c6cb" }}>
+                      {loginError}
+                    </div>
+                  )}
+                  <button style={{ color: "#ffffff", width: "100%", border: "none", cursor: "pointer", padding: "12px", fontSize: "16px", fontWeight: "bold", borderRadius: "4px", backgroundColor: "#24af4c" }} data-component-id="id-17710724062236905" type="submit" onClick={() => {
+                    console.log('🔘 Normal button clicked: id-17710724062236905');
+                    // This button does not have any workflow attached
+                  }}>Login</button>
+                </form>
               </div>
-            )}
-            <button style={{ color: "#ffffff", width: "100%", border: "none", cursor: "pointer", padding: "12px", fontSize: "16px", fontWeight: "bold", borderRadius: "4px", backgroundColor: "#24af4c" }} data-component-id="id-17710724062236905" type="submit" onClick={() => {
-          console.log('🔘 Normal button clicked: id-17710724062236905');
-          // This button does not have any workflow attached
-        }}>Login</button>
-              </form>
             </div>
           </div>
+          <Image src="/uploads/Frame_2147223712.jpg" alt="Frame 2147223712.jpg" width={500} height={300} style={{ width: "715px", height: "831px" }} id="nested-1771071459850-3670" />
         </div>
-        <Image src="/uploads/Frame_2147223712.jpg" alt="Frame 2147223712.jpg" width={500} height={300} style={{width: "715px", height: "831px"}} id="nested-1771071459850-3670" />
       </div>
-    </div>
 
     </>
   );
