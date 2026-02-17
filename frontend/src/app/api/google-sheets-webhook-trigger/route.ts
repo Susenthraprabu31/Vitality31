@@ -95,11 +95,11 @@ export async function POST(request: NextRequest) {
               flowId: matchingFlow.id,
               timestamp: new Date().toISOString(),
               processed: false,
-              error: executionError.message
+              error: executionError instanceof Error ? executionError.message : String(executionError)
             };
             
             return NextResponse.json(
-              { success: false, error: 'Google Sheets workflow execution failed', details: executionError.message },
+              { success: false, error: 'Google Sheets workflow execution failed', details: executionError instanceof Error ? executionError.message : String(executionError) },
               { status: 500 }
             );
           }
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
         console.error(`Google Sheets workflow execution error:`, googleSheetsError);
         
         return NextResponse.json(
-          { success: false, error: 'Google Sheets workflow system error', details: googleSheetsError.message },
+          { success: false, error: 'Google Sheets workflow system error', details: googleSheetsError instanceof Error ? googleSheetsError.message : String(googleSheetsError) },
           { status: 500 }
         );
       }
