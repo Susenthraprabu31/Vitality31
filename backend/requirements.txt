@@ -1,0 +1,41 @@
+# Python version requirement: 3.8+ (tested with Python 3.9, 3.10, 3.11, 3.12)
+# Note: These versions are tested and compatible. If you encounter issues:
+# - Ensure Python 3.8+ is installed
+# - On Windows: Install Visual C++ Build Tools for bcrypt compilation
+# - On Linux/macOS: Ensure build-essential/gcc is installed
+# Build tools (required for some package installations)
+setuptools>=65.5.0
+
+# FastAPI and server
+fastapi==0.103.1
+uvicorn==0.23.2
+python-dotenv==1.0.0
+# Pydantic 2.12.5 - tested version compatible with FastAPI 0.103.1 and email-validator
+# Required for EmailStr validation in auth endpoints
+# Compatible with Python 3.8+ (tested on 3.9, 3.10, 3.11, 3.12)
+pydantic==2.12.5
+# email-validator 2.1.0 - required by pydantic for EmailStr fields (used in auth)
+# Compatible with pydantic 2.12.5 and Python 3.8+
+email-validator==2.1.0
+sqlalchemy==2.0.22
+requests==2.28.2
+
+# Database
+psycopg2-binary==2.9.9
+
+# CORS
+fastapi-cors==0.0.6
+
+# HTTP client (used by various services)
+aiohttp==3.9.0
+
+# Authentication
+# bcrypt 4.0.1 - tested version compatible with passlib[bcrypt]==1.7.4
+# Note: bcrypt 4.0.1 is stable; 4.3.0+ may have build issues on some systems (Windows/Linux)
+# Compatible with Python 3.8+ (tested on 3.9, 3.10, 3.11, 3.12)
+# If build fails on Windows: Install Visual C++ Build Tools
+# If build fails on Linux: Install python3-dev and build-essential
+bcrypt==4.0.1
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
